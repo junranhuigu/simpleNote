@@ -1,4 +1,4 @@
-package com.junranhuigu.simpleNote;
+package com.junranhuigu.simpleNote.vo;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -14,6 +14,8 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDirectory;
+import com.junranhuigu.simpleNote.util.MapUtil;
+import com.junranhuigu.simpleNote.util.StringUtil;
 
 public class PhotoInfo {
 	private String path;
@@ -142,6 +144,26 @@ public class PhotoInfo {
 	}
 	public String getEquipment() {
 		return equipment;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	public void setPosition(Position position) {
+		this.position = position;
+	}
+
+	public void setAddress(Address address) {
+		this.address = address;
+	}
+
+	public void setTime(Date time) {
+		this.time = time;
+	}
+
+	public void setEquipment(String equipment) {
+		this.equipment = equipment;
 	}
 	
 	

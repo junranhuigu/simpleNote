@@ -1,4 +1,4 @@
-package com.junranhuigu.simpleNote;
+package com.junranhuigu.simpleNote.util;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 import javax.imageio.ImageIO;
+
 
 public class ImageUtil {
 
@@ -99,7 +100,7 @@ public class ImageUtil {
 	    	graphics.dispose();
 	  
 	    	ImageIO.write(img, inFileFormat, outFile); 
-	    } catch (Exception e) { 
+	    } catch (Exception e) {
 	    	e.printStackTrace(); 
 	    } 
 	}

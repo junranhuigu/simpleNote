@@ -1,4 +1,4 @@
-package com.junranhuigu.simpleNote;
+package com.junranhuigu.simpleNote.util;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -63,8 +63,8 @@ public class ChannelUtil {
 				while ((line = bufferedReader.readLine()) != null) {
 					sb.append(line);
 				}
+				streamReader.close();
 			}
-			streamReader.close();
 		}
 		return sb.toString();
 	}
@@ -98,8 +98,8 @@ public class ChannelUtil {
 				while ((line = bufferedReader.readLine()) != null) {
 					sb.append(line);
 				}
+				streamReader.close();
 			}
-			streamReader.close();
 		}
 		return sb.toString();
 	}
@@ -156,8 +156,8 @@ public class ChannelUtil {
 				while ((line = bufferedReader.readLine()) != null) {
 					sb.append(line);
 				}
+				streamReader.close();
 			}
-			streamReader.close();
 		}
 		return sb.toString();
 	}

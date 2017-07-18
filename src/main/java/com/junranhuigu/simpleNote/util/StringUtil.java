@@ -1,4 +1,4 @@
-package com.junranhuigu.simpleNote;
+package com.junranhuigu.simpleNote.util;
 
 import java.security.MessageDigest;
 import java.util.ArrayList;

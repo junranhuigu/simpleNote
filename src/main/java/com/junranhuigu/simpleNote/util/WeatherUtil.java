@@ -1,4 +1,4 @@
-package com.junranhuigu.simpleNote;
+package com.junranhuigu.simpleNote.util;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,6 +13,8 @@ import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+
+import com.junranhuigu.simpleNote.structure.Separator;
 
 public class WeatherUtil {
 	

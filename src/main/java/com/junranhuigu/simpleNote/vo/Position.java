@@ -1,4 +1,4 @@
-package com.junranhuigu.simpleNote;
+package com.junranhuigu.simpleNote.vo;
 
 public class Position {
 	private float longtitude;
@@ -18,6 +18,14 @@ public class Position {
 		return latitude;
 	}
 	
+	public void setLongtitude(float longtitude) {
+		this.longtitude = longtitude;
+	}
+
+	public void setLatitude(float latitude) {
+		this.latitude = latitude;
+	}
+
 	@Override
 	public String toString() {
 		return longtitude + "," + latitude;

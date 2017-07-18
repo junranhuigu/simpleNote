@@ -1,4 +1,4 @@
-package com.junranhuigu.simpleNote;
+package com.junranhuigu.simpleNote.structure;
 
 import java.util.ArrayList;
 import java.util.Collection;

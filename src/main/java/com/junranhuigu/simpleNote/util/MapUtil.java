@@ -1,10 +1,12 @@
-package com.junranhuigu.simpleNote;
+package com.junranhuigu.simpleNote.util;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.junranhuigu.simpleNote.vo.Address;
+import com.junranhuigu.simpleNote.vo.Position;
 
 public class MapUtil {
 	private static String mapKey = "0c7726ca1a05b5b0fc8ccff634d31eb7";
@@ -18,7 +20,9 @@ public class MapUtil {
     	String respStr = ChannelUtil.httpPost(path, ChannelUtil.getSortQueryString(params));
     	JSONObject resp = JSON.parseObject(respStr);
     	if(resp.getInteger("status") == 1){
-    		return new Address(resp.getJSONObject("regeocode"));
+    		Address address = new Address(resp.getJSONObject("regeocode"));
+    		address.setMapLocations(params.get("location"));
+    		return address;
     	} else {
     		System.out.println("定位" + resp.getString("info") + "，错误代码：" + resp.getInteger("status"));
     		return null;
