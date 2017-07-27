@@ -1,5 +1,8 @@
 package com.junranhuigu.simpleNote.vo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.alibaba.fastjson.JSONObject;
 
 public class Address {
@@ -11,6 +14,10 @@ public class Address {
 	private String detail;//详细地址
 	private String mapLocations;//高德地图坐标
 	
+	public Address() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	public Address(JSONObject obj) {
 		this.country = obj.getJSONObject("addressComponent").getString("country");
 		this.province = obj.getJSONObject("addressComponent").getString("province");
@@ -18,6 +25,20 @@ public class Address {
 		this.district = obj.getJSONObject("addressComponent").getString("district");
 		this.street = obj.getJSONObject("addressComponent").getString("township");
 		this.detail = obj.getString("formatted_address");
+	}
+	
+	public String simpleDetail(){
+		List<String> filter = new ArrayList<>();
+		filter.add(this.country);
+		filter.add(this.province);
+		filter.add(this.city);
+		filter.add(this.district);
+		filter.add(this.street);
+		String detail = this.detail;
+		for(String f : filter){
+			detail = detail.replace(f, "");
+		}
+		return detail;
 	}
 	
 	public String getCountry() {

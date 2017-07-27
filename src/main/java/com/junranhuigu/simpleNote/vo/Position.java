@@ -4,6 +4,10 @@ public class Position {
 	private float longtitude;
 	private float latitude;
 	
+	public Position() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	public Position(String longtitude, String latitude) {
 		longtitude = longtitude.replace(" ", "");
 		latitude = latitude.replace(" ", "");

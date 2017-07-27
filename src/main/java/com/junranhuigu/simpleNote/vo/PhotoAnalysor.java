@@ -72,7 +72,7 @@ public class PhotoAnalysor {
 			for(PhotoInfo info : infos){
 				if(entry.getKey().equals(info.positionName())){//对应地区
 					String date = sdf.format(info.getTime());
-					info.setWeather(weathers.get(date));
+					info.setWeather(weathers.get(date).replaceAll("[0-9]+年[0-9]+月[0-9]+日", ""));
 				}
 			}
 		}

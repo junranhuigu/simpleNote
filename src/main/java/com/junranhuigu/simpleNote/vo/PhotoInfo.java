@@ -25,6 +25,10 @@ public class PhotoInfo {
 	private Date time;
 	private String equipment;//拍摄设备
 	
+	public PhotoInfo() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	public PhotoInfo(String path) {
 		this.path = path;
 		analysis();

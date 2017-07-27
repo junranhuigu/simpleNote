@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport"
+	content="initial-scale=1.0, user-scalable=no, width=device-width">
+<title>设置地图显示内容</title>
+<link rel="stylesheet"
+	href="http://cache.amap.com/lbs/static/main1119.css" />
+<style>
+</style>
+<script type="text/javascript" src="../jquery.min.js"></script>
+<script type="text/javascript"
+	src="http://webapi.amap.com/maps?v=1.3&key=6df5da9fc68f50eee4550e01fae79d04&&plugin=AMap.Scale,AMap.ToolBar,AMap.AdvancedInfoWindow,AMap.Transfer,AMap.MouseTool"></script>
+<script type="text/javascript"
+	src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+<script type="text/javascript"
+	src="param.js"></script>
+<script type="text/javascript">
+	var map;
+	var markerArray = [], lineArray = [];
+	var infoWindow = new AMap.InfoWindow({
+		autoMove : true,
+		offset : {
+			x : 0,
+			y : -30
+		}
+	});
+	var markerRight;//右键选中的marker缓存
+	$(document).ready(function() {
+		map = new AMap.Map('container', {
+			resizeEnable : true
+		});
+		var scale = new AMap.Scale({
+			visible : false
+		});
+		var toolBar = new AMap.ToolBar({
+			visible : false
+		});
+		map.addControl(scale);
+		map.addControl(toolBar);
+		scale.show();
+		toolBar.show();
+
+		map.on('moveend', showCity);
+		AMap.event.addListener(map, 'zoomend', showZoomLevel);
+		
+		//生成记录点
+		for(i in params){
+			var positions = params[i].position.split(',');
+			var lnglatPoint = new AMap.LngLat(positions[0], positions[1]);
+			var marker = new AMap.Marker({
+				map : map,
+				position : lnglatPoint,
+				title : params[i].info,
+				paramsPosition : i
+				/* label : {
+					offset : new AMap.Pixel(20, 20),//修改label相对于maker的位置
+					content : '<img src="' + params[i].path + '" width="100"/>'
+				} */
+			});
+			marker.on('click', function(e){
+				infoWindow.setContent('<img src="' + this.path + '" width="100"/>');
+				infoWindow.open(map, e.lnglat);
+			}, params[i]);
+			var rightMenu = new AMap.ContextMenu();//右键菜单
+			rightMenu.addItem("查看大图", function() {
+				if(markerRight){
+					window.open(markerRight.path);
+				}
+			});
+			marker.on('rightclick', function(e) {
+				markerRight = this;
+				var path = this.path;
+				rightMenu.open(map, e.lnglat);
+			}, params[i]);
+			markerArray.push(marker);
+		}
+		
+		//初始化显示
+		showCity();
+		showZoomLevel();
+		
+		showMarker();
+	});
+	function jump() {
+		//map.panTo([116.4401, 39.92604]);
+		map.setZoomAndCenter(18, [ 116.446302625869, 39.92741265191 ]);
+	}
+	function showCity() {
+		map.getCity(function(data) {
+			if (data['province'] && typeof data['province'] === 'string') {
+				$('#city').html(data['city'] || data['province']);
+			}
+		});
+	}
+	function showObjInfo(o) {
+		var temp = '';
+		var t, a = [];
+		for ( var i in o) {
+			try {
+				if (typeof (o[i]) == "function") {
+					t = '"' + i + '":"function"';
+				} else if (typeof (o[i]) == "object") {
+					t = '"' + i + '":"object"';
+				} else if (Object.prototype.toString.call(o[i]) === '[object Array]') {
+					t = '"' + i + '":"array"';
+				} else {
+					t = '"' + i + '":"' + t + '"';
+				}
+				if (t != '' || t != null) {
+					a.push(t);
+				}
+				t = '';
+			} catch (e) {
+				alert(e.message);
+			}
+		}
+		temp = "{" + a.join(', ') + "}";
+		return temp;
+	}
+	function showZoomLevel() {
+		$('#zoomLevel').html(map.getZoom());
+	}
+	function clearSomething() {
+		map.remove(markerArray);
+		map.remove(lineArray);
+		markerArray.length = 0;
+		lineArray.length = 0;
+	}
+	function showMarker() {
+		if(markerArray.length > 1){
+			map.setFitView();
+		} else if(markerArray.length == 1){
+			var positions = params[0].position.split(',');
+			map.panTo([positions[0], positions[1]]);
+		}
+	}
+	function drawMarkerLine() {
+		if (markerArray.length > 1) {
+			var positions = [];
+			for ( var v in markerArray) {
+				positions.push([ markerArray[v].getPosition().getLng(),
+						markerArray[v].getPosition().getLat() ]);
+			}
+			var line = new AMap.Polyline({
+				map : map,
+				path : positions
+			});
+			lineArray.push(line);
+		} else {
+			alert('标记数量不足');
+		}
+	}
+</script>
+
+</head>
+<body>
+	<div id="container"></div>
+	<div id="tip">
+		当前城市：<span id="city">未知</span>，缩放级别：<span id="zoomLevel"></span><br />
+	</div>
+	<div class="button-group">
+		<input type="button" value="走你~" class="button" onclick="jump()" />
+		<input type="button" value="清除标记" class="button" onclick="clearSomething()" />
+		<input type="button" value="标记自适应显示" class="button" onclick="showMarker()" /> 
+		<input type="button" value="给标记画条线" class="button" onclick="drawMarkerLine()" />
+	</div>
+</body>
+</html>
