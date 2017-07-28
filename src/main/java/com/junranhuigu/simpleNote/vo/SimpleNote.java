@@ -10,7 +10,7 @@ import com.alibaba.fastjson.JSON;
 import com.junranhuigu.simpleNote.util.StringUtil;
 
 public class SimpleNote {
-	private static String LINE_CHAR = "\n";//换行标识符
+	public static String LINE_CHAR = "\n";//换行标识符
 	
 	/**
 	 * 简易信息

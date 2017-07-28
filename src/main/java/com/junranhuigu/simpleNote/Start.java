@@ -128,6 +128,24 @@ public class Start {
 			Collections.sort(linelist, lineComparator);
 		}
 		System.out.println(JSON.toJSONString(lineParams));
+		//生成详细照片信息
+		LoggerFactory.getLogger(Start.class).info("开始生成预览图片信息");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		StringBuilder builder = new StringBuilder();
+		builder.append("var params = [");
+		for(PhotoInfo info : infos){
+			try {
+				Map<String, String> img = new HashMap<>();
+				img.put("path", info.getPath());
+				img.put("note", sdf.format(info.getTime()) + SimpleNote.LINE_CHAR + info.getAddress().simpleDetail() + SimpleNote.LINE_CHAR + new File(info.getPath()).getName());
+				builder.append(JSON.toJSONString(img)).append(",");
+			} catch (Exception e) {
+				LoggerFactory.getLogger(Start.class).error("读取图片" + info.getPath() + "数据出错", e);
+			}
+		}
+		builder.delete(builder.length() - 1, builder.length());
+		builder.append("];");
+		System.out.println(builder.toString());
 	}
 	
 	
