@@ -12,9 +12,11 @@
 </style>
 <script type="text/javascript" src="../jquery.min.js"></script>
 <script type="text/javascript"
-	src="http://webapi.amap.com/maps?v=1.3&key=6df5da9fc68f50eee4550e01fae79d04&&plugin=AMap.Scale,AMap.ToolBar,AMap.AdvancedInfoWindow,AMap.Transfer,AMap.MouseTool"></script>
+	src="http://webapi.amap.com/maps?v=1.3&key=6df5da9fc68f50eee4550e01fae79d04&&plugin=AMap.Scale,AMap.ToolBar,AMap.AdvancedInfoWindow,AMap.Transfer,AMap.MouseTool,AMapUI"></script>
 <script type="text/javascript"
 	src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+<!-- UI组件库 1.0 -->
+<script src="http://webapi.amap.com/ui/1.0/main.js?v=1.0.10"></script>
 <script type="text/javascript"
 	src="param.js"></script>
 <script type="text/javascript">
@@ -30,7 +32,8 @@
 	var markerRight;//右键选中的marker缓存
 	$(document).ready(function() {
 		map = new AMap.Map('container', {
-			resizeEnable : true
+			resizeEnable : true,
+			zoom: 4
 		});
 		var scale = new AMap.Scale({
 			visible : false
@@ -80,14 +83,64 @@
 		
 		//初始化显示
 		showCity();
-		showZoomLevel();
 		
-		showMarker();
+		//加载相关组件
+	    AMapUI.load(['ui/geo/DistrictCluster', 'ui/misc/PointSimplifier', 'lib/$'], function(DistrictCluster, PointSimplifier, $) {
+	    	var pointSimplifierIns = new PointSimplifier({
+	            map: map, //所属的地图实例
+	            autoSetFitView: false, //禁止自动更新地图视野
+	            zIndex: 110,
+	            getPosition: function(item) {
+	                if (!item) {
+	                    return null;
+	                }
+	                var parts = item.split(',');
+	                //返回经纬度
+	                return [parseFloat(parts[0]), parseFloat(parts[1])];
+	            },
+	            getHoverTitle: function(dataItem, idx) {
+	                return idx + ': ' + dataItem;
+	            },
+	            renderOptions: {
+	                //点的样式
+	                pointStyle: {
+	                    width: 6,
+	                    height: 6,
+	                    fillStyle:'rgba(153, 0, 153, 0.38)'
+	                },
+	                //鼠标hover时的title信息
+	                hoverTitleStyle: {
+	                    position: 'top'
+	                }
+	            }
+	        });
+
+	        var distCluster = new DistrictCluster({
+	            zIndex: 100,
+	            map: map, //所属的地图实例
+	            getPosition: function(item) {
+	                if (!item) {
+	                    return null;
+	                }
+	                var parts = item.split(',');
+	                //返回经纬度
+	                return [parseFloat(parts[0]), parseFloat(parts[1])];
+	            }
+	        });
+	        //加载数据
+	        $('<div id="loadingTip">加载数据，请稍候...</div>').appendTo(document.body);
+	        var positionData = [];
+	        for(mark of markerArray){
+	        	positionData.push(mark.getPosition().getLng() + "," + mark.getPosition().getLat());
+	        }
+	        distCluster.setData(positionData);
+	        pointSimplifierIns.setData(positionData);
+	        $('#loadingTip').remove();
+	        //启动页面
+	        initPage(distCluster, pointSimplifierIns, $);
+	        jump();
+	    });
 	});
-	function jump() {
-		//map.panTo([116.4401, 39.92604]);
-		map.setZoomAndCenter(18, [ 116.446302625869, 39.92741265191 ]);
-	}
 	function showCity() {
 		map.getCity(function(data) {
 			if (data['province'] && typeof data['province'] === 'string') {
@@ -95,33 +148,23 @@
 			}
 		});
 	}
-	function showObjInfo(o) {
-		var temp = '';
-		var t, a = [];
-		for ( var i in o) {
-			try {
-				if (typeof (o[i]) == "function") {
-					t = '"' + i + '":"function"';
-				} else if (typeof (o[i]) == "object") {
-					t = '"' + i + '":"object"';
-				} else if (Object.prototype.toString.call(o[i]) === '[object Array]') {
-					t = '"' + i + '":"array"';
-				} else {
-					t = '"' + i + '":"' + t + '"';
-				}
-				if (t != '' || t != null) {
-					a.push(t);
-				}
-				t = '';
-			} catch (e) {
-				alert(e.message);
-			}
-		}
-		temp = "{" + a.join(', ') + "}";
-		return temp;
-	}
 	function showZoomLevel() {
-		$('#zoomLevel').html(map.getZoom());
+		var zoom = map.getZoom();
+		$('#zoomLevel').html(zoom);
+		//刷新信息点
+		//获取 pointStyle
+        //var pointStyle = pointSimplifierIns.getRenderOptions().pointStyle;
+        //根据当前zoom调整点的尺寸
+        //pointStyle.width = pointStyle.height = 2 * Math.pow(1.2, map.getZoom() - 3);
+        if (zoom < 10) {
+        	for(mark of markerArray){
+        		mark.hide();
+        	}
+        } else {
+        	for(mark of markerArray){
+        		mark.show();
+        	}
+        }
 	}
 	function clearSomething() {
 		map.remove(markerArray);
@@ -153,6 +196,15 @@
 			alert('标记数量不足');
 		}
 	}
+	function initPage(distCluster, pointSimplifierIns) {
+        window.distCluster = distCluster;
+        pointSimplifierIns.hide();
+        showZoomLevel();
+    }
+	function jump(){
+		//初始化界面
+        map.setZoom(5);
+	}
 </script>
 
 </head>
@@ -162,7 +214,7 @@
 		当前城市：<span id="city">未知</span>，缩放级别：<span id="zoomLevel"></span><br />
 	</div>
 	<div class="button-group">
-		<input type="button" value="走你~" class="button" onclick="jump()" />
+		<input type="button" value="全国" class="button" onclick="jump()" />
 		<input type="button" value="清除标记" class="button" onclick="clearSomething()" />
 		<input type="button" value="标记自适应显示" class="button" onclick="showMarker()" /> 
 		<input type="button" value="给标记画条线" class="button" onclick="drawMarkerLine()" />

@@ -34,14 +34,24 @@ import com.junranhuigu.simpleNote.vo.TimeLine;
 public class Start {
 	public static void main(String[] args) {
 		String packPath = "C:\\Users\\jiawei\\Desktop\\img";
+		
+		List<String> notImgPath = new ArrayList<>();
+		notImgPath.add(packPath + File.separator + "info");
+		notImgPath.add(packPath + File.separator + "web");
+		
 		File pack = new File(packPath);
 		LoggerFactory.getLogger(Start.class).info("开始抓取图片");
 		Set<String> imgPaths = new HashSet<>();
 		findAllFiles(pack, imgPaths);//
 		imgPaths.removeAll(readAnalysisedPhotoData(pack, "root.path"));
 		List<String> imgs = new ArrayList<>(); 
-		for(String path : imgPaths){
+		pathFor : for(String path : imgPaths){
 			File file = new File(path);
+			for(String notImg : notImgPath){
+				if(file.getAbsolutePath().contains(notImg)){
+					continue pathFor;
+				}
+			}
 			try(	BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))){
 				if(FileTypeDetector.detectFileType(bis) != FileType.Unknown){
 					imgs.add(path);
@@ -66,7 +76,17 @@ public class Start {
 		}
 		LoggerFactory.getLogger(Start.class).info("开始读取图片信息");
 		List<PhotoInfo> infos = readAnalysisedPhotoInfo(pack);
+		LoggerFactory.getLogger(Start.class).info("图片信息读取完毕，共计：" + infos.size());
+		LoggerFactory.getLogger(Start.class).info("检测预览网页文件");
+		File webPackage = new File(System.getProperty("user.dir") + File.separator + "web");
+		try {
+			File aim = new File("C:\\Users\\jiawei\\Desktop\\img\\web");
+			FileUtil.copy(aim, webPackage, false);
+		} catch (Exception e) {
+			LoggerFactory.getLogger(Start.class).error("转移文件失败", e);
+		}
 		//生成地图信息
+		LoggerFactory.getLogger(Start.class).info("生成地图信息");
 		Map<String, String> mapNotes = new HashMap<>();
 		for(PhotoInfo info : infos){
 			if(!mapNotes.containsKey(info.getAddress().getMapLocations())){
@@ -82,8 +102,16 @@ public class Start {
 			mapParams.append(note).append(",");
 		}
 		mapParams.append("];");
-		System.out.println(mapParams.toString());
+		List<String> records = new ArrayList<>();
+		records.add(mapParams.toString());
+		try {
+			File mapParamFile = new File(webPackage.getAbsolutePath() + File.separator + "map" + File.separator + "param.js");
+			FileUtil.cover(records, mapParamFile.getAbsolutePath(), Charset.forName("UTF-8"));
+		} catch (Exception e) {
+			LoggerFactory.getLogger(Start.class).error("写入地图数据出错", e);
+		}
 		//生成时间线信息
+		LoggerFactory.getLogger(Start.class).info("生成时间线信息");
 		Separator<String, PhotoInfo> linePhotoSeparator = new Separator<String, PhotoInfo>() {
 			@Override
 			public String separate(PhotoInfo v) {
@@ -127,25 +155,39 @@ public class Start {
 		for(List<TimeLine> linelist : lineParams.values()){
 			Collections.sort(linelist, lineComparator);
 		}
-		System.out.println(JSON.toJSONString(lineParams));
+		try {
+			File lineParamFile = new File(webPackage.getAbsolutePath() + File.separator + "time" + File.separator + "line.json");
+			records.clear();
+			records.add(JSON.toJSONString(lineParams));
+			FileUtil.cover(records, lineParamFile.getAbsolutePath(), Charset.forName("UTF-8"));
+		} catch (Exception e) {
+			LoggerFactory.getLogger(Start.class).error("写入时间线数据出错", e);
+		}
 		//生成详细照片信息
 		LoggerFactory.getLogger(Start.class).info("开始生成预览图片信息");
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		StringBuilder builder = new StringBuilder();
-		builder.append("var params = [");
+		StringBuilder photoParams = new StringBuilder();
+		photoParams.append("var params = [");
 		for(PhotoInfo info : infos){
 			try {
 				Map<String, String> img = new HashMap<>();
 				img.put("path", info.getPath());
 				img.put("note", sdf.format(info.getTime()) + SimpleNote.LINE_CHAR + info.getAddress().simpleDetail() + SimpleNote.LINE_CHAR + new File(info.getPath()).getName());
-				builder.append(JSON.toJSONString(img)).append(",");
+				photoParams.append(JSON.toJSONString(img)).append(",");
 			} catch (Exception e) {
 				LoggerFactory.getLogger(Start.class).error("读取图片" + info.getPath() + "数据出错", e);
 			}
 		}
-		builder.delete(builder.length() - 1, builder.length());
-		builder.append("];");
-		System.out.println(builder.toString());
+		photoParams.delete(photoParams.length() - 1, photoParams.length());
+		photoParams.append("];");
+		try {
+			File photoParamFile = new File(webPackage.getAbsolutePath() + File.separator + "time" + File.separator + "line.json");
+			records.clear();
+			records.add(photoParams.toString());
+			FileUtil.cover(records, photoParamFile.getAbsolutePath(), Charset.forName("UTF-8"));
+		} catch (Exception e) {
+			LoggerFactory.getLogger(Start.class).error("写入照片预览数据出错", e);
+		}
 	}
 	
 	

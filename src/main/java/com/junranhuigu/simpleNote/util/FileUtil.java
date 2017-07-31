@@ -3,8 +3,11 @@ package com.junranhuigu.simpleNote.util;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.util.Collections;
@@ -142,5 +145,49 @@ public class FileUtil {
 			}
 		}
 		return "";
+	}
+	
+	/**
+	 * 复制文件,如果是文件夹，将目标文件进行合并
+	 * @param cover 同名文件是否覆盖
+	 * */
+	public static void copy(File aim, File copy, boolean cover) throws Exception{
+		if(!copy.exists()){
+			throw new FileNotFoundException(copy.getAbsolutePath() + "不存在");
+		}
+		if(!aim.exists()){
+			if(copy.isFile()){
+				aim.createNewFile();
+			} else {
+				aim.mkdirs();
+			}
+		}
+		if((aim.isFile() && copy.isFile()) || (aim.isDirectory() && copy.isDirectory())){
+			if(copy.isFile()){//复制文件
+				try(	FileChannel achannel = new FileOutputStream(aim).getChannel();
+						FileChannel cchannel = new FileInputStream(copy).getChannel();){
+					ByteBuffer buffer = ByteBuffer.allocate((int)cchannel.size());
+					cchannel.read(buffer);
+					buffer.flip();
+					achannel.write(buffer);
+				}
+			} else {//复制文件夹
+				for(File copyF : copy.listFiles()){
+					File _aimF = null;
+					for(File aimF : aim.listFiles()){
+						if(aimF.getName().equals(copyF.getName())){
+							_aimF = aimF;
+							break;
+						}
+					}
+					if(!(_aimF != null && !cover)){
+						_aimF = _aimF == null ? new File(aim.getAbsolutePath() + File.separator + copyF.getName()) : _aimF;
+						copy(_aimF, copyF, cover);
+					}
+				}
+			}
+		} else {
+			throw new Exception(aim.getAbsolutePath() + "与" + copy.getAbsolutePath() + "文件类型不一致");
+		}
 	}
 }
