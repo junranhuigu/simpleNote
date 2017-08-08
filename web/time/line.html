@@ -5,6 +5,7 @@
 <title>时间线</title>
 <link href="css/lineStyle.css" rel="stylesheet" type="text/css" />
 <script type="text/javascript" src="../jquery.min.js"></script>
+<script type="text/javascript" src="params.js"></script>
 <script type="text/javascript">
 	function parseDom(year, content) {
 		var dStr = [];
@@ -49,17 +50,9 @@
 		var html = dStr.join('');
 		return html;
 	}
-	var json;
-	$.ajax({
-		url : 'line.json',
-		type : "GET",
-		dataType : "json",
-		success : function(data) {
-			json = data;
-		}
-	});
 	$(document).ready(function() {
-		for (v in json) {
+		console.log(params);
+		for (v in params) {
 			var xmlDoc = parseDom(v, json[v]);
 			$('#content').append(xmlDoc);
 		}

@@ -33,7 +33,7 @@ import com.junranhuigu.simpleNote.vo.TimeLine;
 
 public class Start {
 	public static void main(String[] args) {
-		String packPath = "C:\\Users\\jiawei\\Desktop\\img";
+		String packPath = "C:\\Users\\Administrator\\Desktop\\img";
 		
 		List<String> notImgPath = new ArrayList<>();
 		notImgPath.add(packPath + File.separator + "info");
@@ -80,7 +80,7 @@ public class Start {
 		LoggerFactory.getLogger(Start.class).info("检测预览网页文件");
 		File webPackage = new File(System.getProperty("user.dir") + File.separator + "web");
 		try {
-			File aim = new File("C:\\Users\\jiawei\\Desktop\\img\\web");
+			File aim = new File(packPath + File.separator + "web");
 			FileUtil.copy(aim, webPackage, false);
 		} catch (Exception e) {
 			LoggerFactory.getLogger(Start.class).error("转移文件失败", e);
@@ -89,7 +89,7 @@ public class Start {
 		LoggerFactory.getLogger(Start.class).info("生成地图信息");
 		Map<String, String> mapNotes = new HashMap<>();
 		for(PhotoInfo info : infos){
-			if(!mapNotes.containsKey(info.getAddress().getMapLocations())){
+			if(info.getAddress() != null && !mapNotes.containsKey(info.getAddress().getMapLocations())){
 				try {
 					mapNotes.put(info.getAddress().getMapLocations(), SimpleNote.mapNote(info));
 				} catch (Exception e) {
@@ -156,9 +156,10 @@ public class Start {
 			Collections.sort(linelist, lineComparator);
 		}
 		try {
-			File lineParamFile = new File(webPackage.getAbsolutePath() + File.separator + "time" + File.separator + "line.json");
+			File lineParamFile = new File(webPackage.getAbsolutePath() + File.separator + "time" + File.separator + "params.js");
 			records.clear();
 			records.add(JSON.toJSONString(lineParams));
+			System.out.println(records);
 			FileUtil.cover(records, lineParamFile.getAbsolutePath(), Charset.forName("UTF-8"));
 		} catch (Exception e) {
 			LoggerFactory.getLogger(Start.class).error("写入时间线数据出错", e);
