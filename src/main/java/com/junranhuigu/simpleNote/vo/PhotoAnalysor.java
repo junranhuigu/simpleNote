@@ -11,27 +11,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.alibaba.fastjson.JSON;
 import com.junranhuigu.simpleNote.structure.Separator;
 import com.junranhuigu.simpleNote.util.WeatherUtil;
 
 public class PhotoAnalysor {
-	
-	public static void main(String[] args) throws Exception{
-		List<String> paths = new ArrayList<>();
-	    paths.add("C:\\Users\\jiawei\\Desktop\\IMG_20170423_175914.jpg");
-	    paths.add("C:\\Users\\jiawei\\Desktop\\IMG_20170205_110835.jpg");
-	    paths.add("C:\\Users\\jiawei\\Desktop\\IMG_20170625_150057_HDR.jpg");
-	    paths.add("C:\\Users\\jiawei\\Desktop\\IMG_20170625_145122_HDR.jpg");
-	    paths.add("C:\\Users\\jiawei\\Desktop\\IMG_20170718_141845.jpg");
-	    paths.add("C:\\Users\\jiawei\\Desktop\\IMG_20170718_141909.jpg");
-	    paths.add("C:\\Users\\jiawei\\Desktop\\问题导向的知识管理.png");
-	    paths.add("C:\\Users\\jiawei\\Desktop\\微信图片_20170705112327.jpg");
-	    for(PhotoInfo info : analysis(paths)){
-	    	System.out.println(JSON.toJSONString(info));
-		    System.out.println(SimpleNote.simpleNote(info));
-	    }
-	}
 	
 	public static List<PhotoInfo> analysis(List<String> paths) throws Exception{
 		if(paths == null || paths.isEmpty()){

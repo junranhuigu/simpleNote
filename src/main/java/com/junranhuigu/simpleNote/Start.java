@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.drew.imaging.FileType;
 import com.drew.imaging.FileTypeDetector;
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.GpsDirectory;
 import com.junranhuigu.simpleJson.JsonUtil;
 import com.junranhuigu.simpleNote.structure.Separator;
 import com.junranhuigu.simpleNote.util.FileUtil;
@@ -44,7 +47,7 @@ public class Start {
 		Set<String> imgPaths = new HashSet<>();
 		findAllFiles(pack, imgPaths);//
 		imgPaths.removeAll(readAnalysisedPhotoData(pack, "root.path"));
-		List<String> imgs = new ArrayList<>(); 
+		List<String> imgs = new ArrayList<>();
 		pathFor : for(String path : imgPaths){
 			File file = new File(path);
 			for(String notImg : notImgPath){
@@ -54,7 +57,11 @@ public class Start {
 			}
 			try(	BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))){
 				if(FileTypeDetector.detectFileType(bis) != FileType.Unknown){
-					imgs.add(path);
+					Metadata data = ImageMetadataReader.readMetadata(file);
+					GpsDirectory d2 = data.getFirstDirectoryOfType(GpsDirectory.class);
+					if(d2 != null && d2.getDescription(GpsDirectory.TAG_LONGITUDE) != null){//只记录有GPS信息的图片
+						imgs.add(path);
+					}
 				}
 			} catch (Exception e) {}
 		}
@@ -79,17 +86,11 @@ public class Start {
 		LoggerFactory.getLogger(Start.class).info("图片信息读取完毕，共计：" + infos.size());
 		LoggerFactory.getLogger(Start.class).info("检测预览网页文件");
 		File webPackage = new File(System.getProperty("user.dir") + File.separator + "web");
-		try {
-			File aim = new File("C:\\Users\\jiawei\\Desktop\\img\\web");
-			FileUtil.copy(aim, webPackage, false);
-		} catch (Exception e) {
-			LoggerFactory.getLogger(Start.class).error("转移文件失败", e);
-		}
 		//生成地图信息
 		LoggerFactory.getLogger(Start.class).info("生成地图信息");
 		Map<String, String> mapNotes = new HashMap<>();
 		for(PhotoInfo info : infos){
-			if(!mapNotes.containsKey(info.getAddress().getMapLocations())){
+			if(info.getAddress() != null && !mapNotes.containsKey(info.getAddress().getMapLocations())){
 				try {
 					mapNotes.put(info.getAddress().getMapLocations(), SimpleNote.mapNote(info));
 				} catch (Exception e) {
@@ -156,9 +157,9 @@ public class Start {
 			Collections.sort(linelist, lineComparator);
 		}
 		try {
-			File lineParamFile = new File(webPackage.getAbsolutePath() + File.separator + "time" + File.separator + "line.json");
+			File lineParamFile = new File(webPackage.getAbsolutePath() + File.separator + "time" + File.separator + "params.js");
 			records.clear();
-			records.add(JSON.toJSONString(lineParams));
+			records.add("var params = " + JSON.toJSONString(lineParams) + ";");
 			FileUtil.cover(records, lineParamFile.getAbsolutePath(), Charset.forName("UTF-8"));
 		} catch (Exception e) {
 			LoggerFactory.getLogger(Start.class).error("写入时间线数据出错", e);
@@ -181,12 +182,20 @@ public class Start {
 		photoParams.delete(photoParams.length() - 1, photoParams.length());
 		photoParams.append("];");
 		try {
-			File photoParamFile = new File(webPackage.getAbsolutePath() + File.separator + "time" + File.separator + "line.json");
+			File photoParamFile = new File(webPackage.getAbsolutePath() + File.separator + "imgDetail" + File.separator + "js" + File.separator + "params.js");
 			records.clear();
 			records.add(photoParams.toString());
 			FileUtil.cover(records, photoParamFile.getAbsolutePath(), Charset.forName("UTF-8"));
 		} catch (Exception e) {
 			LoggerFactory.getLogger(Start.class).error("写入照片预览数据出错", e);
+		}
+		//转移生成的文件
+		LoggerFactory.getLogger(Start.class).info("开始转移网页展示文件");
+		try {
+			File aim = new File(packPath + File.separator + "web");
+			FileUtil.copy(aim, webPackage, true);
+		} catch (Exception e) {
+			LoggerFactory.getLogger(Start.class).error("转移文件失败", e);
 		}
 	}
 	

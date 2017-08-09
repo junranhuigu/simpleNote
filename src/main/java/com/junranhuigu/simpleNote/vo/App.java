@@ -22,7 +22,6 @@ public class App {
        System.out.println(app.sayHello());
 //       String path = "C:\\Users\\jiawei\\Desktop\\IMG_20170625_150057_HDR.jpg";
        List<String> paths = new ArrayList<>();
-       paths.add("C:\\Users\\jiawei\\Desktop\\IMG_20170423_175914.jpg");
 //       paths.add("C:\\Users\\jiawei\\Desktop\\IMG_20170205_110835.jpg");
 //       paths.add("C:\\Users\\jiawei\\Desktop\\IMG_20170625_150057_HDR.jpg");
 //       paths.add("C:\\Users\\jiawei\\Desktop\\IMG_20170625_145122_HDR.jpg");
