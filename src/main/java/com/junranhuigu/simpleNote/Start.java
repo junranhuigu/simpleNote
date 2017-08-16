@@ -35,9 +35,9 @@ import com.junranhuigu.simpleNote.vo.SimpleNote;
 import com.junranhuigu.simpleNote.vo.TimeLine;
 
 public class Start {
+	public static String packPath = "C:\\Users\\jiawei\\Desktop\\img";
+	
 	public static void main(String[] args) {
-		String packPath = "C:\\Users\\jiawei\\Desktop\\img";
-		
 		List<String> notImgPath = new ArrayList<>();
 		notImgPath.add(packPath + File.separator + "info");
 		notImgPath.add(packPath + File.separator + "web");
@@ -80,6 +80,7 @@ public class Start {
 			} catch (Exception e) {
 				LoggerFactory.getLogger(Start.class).error("分析图片数据出错", e);
 			}
+			LoggerFactory.getLogger(Start.class).info("图片数据分析完毕");
 		}
 		LoggerFactory.getLogger(Start.class).info("开始读取图片信息");
 		List<PhotoInfo> infos = readAnalysisedPhotoInfo(pack);
@@ -172,7 +173,7 @@ public class Start {
 		for(PhotoInfo info : infos){
 			try {
 				Map<String, String> img = new HashMap<>();
-				img.put("path", info.getPath());
+				img.put("path", info.showPath());
 				img.put("note", sdf.format(info.getTime()) + SimpleNote.LINE_CHAR + info.getAddress().simpleDetail() + SimpleNote.LINE_CHAR + new File(info.getPath()).getName());
 				photoParams.append(JSON.toJSONString(img)).append(",");
 			} catch (Exception e) {
@@ -197,6 +198,7 @@ public class Start {
 		} catch (Exception e) {
 			LoggerFactory.getLogger(Start.class).error("转移文件失败", e);
 		}
+		LoggerFactory.getLogger(Start.class).info("转移网页展示文件完毕");
 	}
 	
 	

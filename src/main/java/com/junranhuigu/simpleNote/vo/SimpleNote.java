@@ -39,7 +39,7 @@ public class SimpleNote {
 	public static String mapNote(PhotoInfo info) throws Exception{
 		Map<String, String> params = new HashMap<>();
 		params.put("info", simpleNote(info));
-		params.put("path", info.getPath().replace(File.separator, "/"));
+		params.put("path", info.showPath().replace(File.separator, "/"));
 		params.put("position", info.getAddress().getMapLocations());
 		return JSON.toJSONString(params);
 	}

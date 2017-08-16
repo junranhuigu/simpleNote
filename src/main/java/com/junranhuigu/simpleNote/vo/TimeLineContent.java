@@ -24,7 +24,7 @@ public class TimeLineContent {
 		this.locationDetail = imgInfos.get(0).getAddress().simpleDetail();
 		this.location = imgInfos.get(0).getAddress().getDetail().replace(this.locationDetail, "");
 		for(PhotoInfo info : imgInfos){
-			this.imgPaths.add(info.getPath());
+			this.imgPaths.add(info.showPath());
 			this.weather = info.getWeather();
 		}
 	}

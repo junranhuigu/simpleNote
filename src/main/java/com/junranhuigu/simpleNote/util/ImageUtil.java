@@ -63,12 +63,12 @@ public class ImageUtil {
 	    	BufferedImage img = new BufferedImage(width, height, bufferedImage.getColorModel().getTransparency());
 	    	Graphics graphics = img.createGraphics();
     		graphics.drawImage(bufferedImage, 0, 0, width, height, null);
-	    	graphics.dispose(); 
+	    	graphics.dispose();
 	  
 	    	ImageIO.write(img, inFileFormat, outFile); 
 	    } catch (Exception e) { 
 	    	e.printStackTrace(); 
-	    } 
+	    }
     } 
 
 	/**
@@ -103,5 +103,9 @@ public class ImageUtil {
 	    } catch (Exception e) {
 	    	e.printStackTrace(); 
 	    } 
+	}
+	
+	public static void main(String[] args) {
+		flip("C:\\Users\\jiawei\\Desktop\\小草.jpg", "C:\\Users\\jiawei\\Desktop\\小草.jpg");
 	}
 }

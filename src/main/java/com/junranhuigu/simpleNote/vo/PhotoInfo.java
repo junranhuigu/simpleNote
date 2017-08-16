@@ -1,5 +1,6 @@
 package com.junranhuigu.simpleNote.vo;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -9,16 +10,24 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+import javax.imageio.ImageIO;
+
+import org.slf4j.LoggerFactory;
+
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDirectory;
+import com.junranhuigu.simpleNote.Start;
+import com.junranhuigu.simpleNote.TeamProperty;
+import com.junranhuigu.simpleNote.util.ImageUtil;
 import com.junranhuigu.simpleNote.util.MapUtil;
 import com.junranhuigu.simpleNote.util.StringUtil;
 
 public class PhotoInfo {
 	private String path;
+	private String smallPath;
 	private Position position;
 	private Address address;
 	private String weather;
@@ -31,7 +40,40 @@ public class PhotoInfo {
 	
 	public PhotoInfo(String path) {
 		this.path = path;
+		smallImg();
 		analysis();
+	}
+	
+	public String showPath(){
+		return StringUtil.isEmpty(this.smallPath) ? this.path : this.smallPath;
+	}
+	
+	/**
+	 * 生成图片缩略图
+	 * */
+	private void smallImg(){
+		File imgFile = new File(this.path);
+		String outPathPackage = Start.packPath + File.separator + "img";
+		File outPackage = new File(outPathPackage);
+		if(!outPackage.exists()){
+			outPackage.mkdirs();
+		}
+		try {
+			BufferedImage bufferedImage = ImageIO.read(imgFile);
+			int scalePercent = 1;
+			int height = bufferedImage.getHeight();
+			int width = bufferedImage.getWidth();
+			if(height > width){
+				scalePercent = Integer.parseInt(TeamProperty.getInstance().get("smallImgHeight")) * 100 / height;
+			} else {
+				scalePercent = Integer.parseInt(TeamProperty.getInstance().get("smallImgWidth")) * 100 / width;
+			}
+			String outFilePath = outPathPackage + File.separator + imgFile.getName();
+			ImageUtil.scale(this.path, outFilePath, scalePercent);
+			this.smallPath = outFilePath;
+		} catch (Exception e) {
+			LoggerFactory.getLogger(PhotoInfo.class).error("创建图片" + this.path + "缩略图失败", e);
+		}
 	}
 	
 	private void analysis(){
@@ -169,6 +211,13 @@ public class PhotoInfo {
 	public void setEquipment(String equipment) {
 		this.equipment = equipment;
 	}
-	
+
+	public String getSmallPath() {
+		return smallPath;
+	}
+
+	public void setSmallPath(String smallPath) {
+		this.smallPath = smallPath;
+	}
 	
 }
