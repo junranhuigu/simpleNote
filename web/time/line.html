@@ -9,6 +9,9 @@
 <script type="text/javascript">
 	function parseDom(year, content) {
 		var dStr = [];
+		console.log(window.location.pathname);
+		console.log(window.location.href);
+		console.log(window.location.protocol);
 		dStr.push('<div class="year">');
 		dStr.push('<h2>');
 		dStr.push('<a href="#">' + year + '<i></i></a>');
@@ -31,7 +34,7 @@
 					var imgStr = '<p>';
 					var len = 0;
 					for (img in cs.imgPaths) {
-						imgStr += '<img src="file:///' + cs.imgPaths[img] + '" height="100"/>';
+						imgStr += '<img src="' + cs.imgPaths[img] + '" height="100"/>';
 						if (++len > 5) {
 							imgStr += '<strong>...</strong>';
 							break;

@@ -70,7 +70,8 @@ public class PhotoInfo {
 			}
 			String outFilePath = outPathPackage + File.separator + imgFile.getName();
 			ImageUtil.scale(this.path, outFilePath, scalePercent);
-			this.smallPath = outFilePath;
+//			this.smallPath = outFilePath;
+			this.smallPath = Start.webUrl + "/img/" + imgFile.getName();
 		} catch (Exception e) {
 			LoggerFactory.getLogger(PhotoInfo.class).error("创建图片" + this.path + "缩略图失败", e);
 		}

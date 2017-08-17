@@ -36,6 +36,7 @@ import com.junranhuigu.simpleNote.vo.TimeLine;
 
 public class Start {
 	public static String packPath = "C:\\Users\\jiawei\\Desktop\\img";
+	public static String webUrl = "http://bxu2713750650.my3w.com";
 	
 	public static void main(String[] args) {
 		List<String> notImgPath = new ArrayList<>();
