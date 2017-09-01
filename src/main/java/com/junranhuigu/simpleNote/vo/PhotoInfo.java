@@ -33,6 +33,7 @@ public class PhotoInfo {
 	private String weather;
 	private Date time;
 	private String equipment;//拍摄设备
+	private String note;//备注
 	
 	public PhotoInfo() {
 		// TODO Auto-generated constructor stub
@@ -71,7 +72,7 @@ public class PhotoInfo {
 			String outFilePath = outPathPackage + File.separator + imgFile.getName();
 			ImageUtil.scale(this.path, outFilePath, scalePercent);
 //			this.smallPath = outFilePath;
-			this.smallPath = Start.webUrl + "/img/" + imgFile.getName();
+			this.smallPath = Start.webUrl + Start.webSeparator +  "img" + Start.webSeparator + imgFile.getName();
 		} catch (Exception e) {
 			LoggerFactory.getLogger(PhotoInfo.class).error("创建图片" + this.path + "缩略图失败", e);
 		}
@@ -219,6 +220,14 @@ public class PhotoInfo {
 
 	public void setSmallPath(String smallPath) {
 		this.smallPath = smallPath;
+	}
+
+	public String getNote() {
+		return note;
+	}
+
+	public void setNote(String note) {
+		this.note = note;
 	}
 	
 }

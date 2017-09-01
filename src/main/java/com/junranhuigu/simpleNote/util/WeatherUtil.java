@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -17,6 +19,7 @@ import org.jsoup.nodes.Element;
 import com.junranhuigu.simpleNote.structure.Separator;
 
 public class WeatherUtil {
+	
 	
 	/**
 	 * 获取历史天气
@@ -155,6 +158,30 @@ public class WeatherUtil {
 				}
 			});
 			return codes.get(0);
+		}
+	}
+	
+	/**
+	 * 天气简单信息
+	 * */
+	public static String simpleWeather(String weather){
+		int index = weather.lastIndexOf("℃");
+		StringBuilder info = new StringBuilder(weather.substring(0, index + 1).replace("/", "-").replace(" ", ""));//精简信息
+		//在天气和气温间加空格
+		Pattern pattern = Pattern.compile("[0-9]+");
+		Matcher matcher = pattern.matcher(info.toString());
+		if(matcher.find()){
+			index = matcher.start();
+			info.insert(index, " ");
+		}
+		//精简天气
+		int index2 = info.indexOf("-");
+		String firstWeather = info.substring(0, index2);
+		String secondWeather = info.substring(index2 + 1, index);
+		if(firstWeather.equals(secondWeather)){
+			return info.toString().replace("-" + secondWeather, "");
+		} else {
+			return info.toString();
 		}
 	}
 }

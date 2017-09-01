@@ -1,0 +1,269 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport"
+	content="initial-scale=1.0, user-scalable=no, width=device-width">
+<title>爱情地图</title>
+<link rel="stylesheet"
+	href="http://cache.amap.com/lbs/static/main1119.css" />
+<style>
+</style>
+<script type="text/javascript" src="../jquery.min.js"></script>
+<script type="text/javascript"
+	src="http://webapi.amap.com/maps?v=1.3&key=6df5da9fc68f50eee4550e01fae79d04&&plugin=AMap.Scale,AMap.ToolBar,AMap.AdvancedInfoWindow,AMap.Transfer,AMap.MouseTool,AMapUI,AMap.MarkerClusterer"></script>
+<script type="text/javascript"
+	src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+<!-- UI组件库 1.0 -->
+<script src="http://webapi.amap.com/ui/1.0/main.js?v=1.0.10"></script>
+<script type="text/javascript"
+	src="param.js"></script>
+<script type="text/javascript">
+	var map, cluster, showImgContext;
+	var markerArray = [], lineArray = [];
+	var infoWindow = new AMap.InfoWindow({
+		autoMove : true,
+		offset : {
+			x : 0,
+			y : -30
+		}
+	});
+	var markerRight;//右键选中的marker缓存
+	$(document).ready(function() {
+		map = new AMap.Map('container', {
+			resizeEnable : true,
+			//zoom: 4,
+			mapStyle: 'amap://styles/macaron'
+		});
+		var scale = new AMap.Scale({
+			visible : false
+		});
+		var toolBar = new AMap.ToolBar({
+			visible : false
+		});
+		map.addControl(scale);
+		map.addControl(toolBar);
+		scale.show();
+		toolBar.show();
+
+		map.on('moveend', showCity);
+		AMap.event.addListener(map, 'zoomend', showZoomLevel);
+		
+		//生成记录点
+		for(i in params){
+			var positions = params[i].position.split(',');
+			var lnglatPoint = new AMap.LngLat(positions[0], positions[1]);
+			var marker = new AMap.Marker({
+				map : map,
+				content: '<div style="background-color: hsla(180, 100%, 50%, 0.7); height: 24px; width: 24px; border: 1px solid hsl(180, 100%, 40%); border-radius: 12px; box-shadow: hsl(180, 100%, 50%) 0px 0px 1px;"></div>',
+				position : lnglatPoint,
+				title : params[i].info,
+				paramsPosition : i
+			});
+			marker.on('click', function(e){
+				infoWindow.setContent(infoWindowContent(this));
+				infoWindow.open(map, e.lnglat);
+			}, params[i]);
+			var rightMenu = new AMap.ContextMenu();//右键菜单
+			rightMenu.addItem("查看大图", function() {
+				if(markerRight){
+					window.open(markerRight.path);
+				}
+			});
+			marker.on('rightclick', function(e) {
+				markerRight = this;
+				var path = this.path;
+				rightMenu.open(map, e.lnglat);
+			}, params[i]);
+			markerArray.push(marker);
+		}
+		
+		//初始化显示
+		showCity();
+		
+		//加载相关组件
+		cluster = new AMap.MarkerClusterer(map, markerArray,{
+	       		maxZoom : 18,
+	           	gridSize : 30,
+	           	averageCenter : true,
+	           	renderCluserMarker : function(context) {
+	           		var count = markerArray.length;
+	                var factor = Math.pow(context.count/count,1/18)
+	                var div = document.createElement('div');
+	                var Hue = 180 - factor* 180;
+	                var bgColor = 'hsla('+Hue+',100%,50%,0.7)';
+	                var fontColor = 'hsla('+Hue+',100%,20%,1)';
+	                var borderColor = 'hsla('+Hue+',100%,40%,1)';
+	                var shadowColor = 'hsla('+Hue+',100%,50%,1)';
+	                div.style.backgroundColor = bgColor
+	                var size = Math.round(30 + Math.pow(context.count/count,1/5) * 20);
+	                div.style.width = div.style.height = size+'px';
+	                div.style.border = 'solid 1px '+ borderColor;
+	                div.style.borderRadius = size/2 + 'px';
+	                div.style.boxShadow = '0 0 1px '+ shadowColor;
+	                div.innerHTML = context.count;
+	                div.style.lineHeight = size+'px';
+	                div.style.color = fontColor;
+	                div.style.fontSize = '14px';
+	                div.style.textAlign = 'center';
+	                context.marker.setOffset(new AMap.Pixel(-size/2,-size/2));
+	                context.marker.setContent(div)
+	            }
+	    });
+		cluster.on('click', function(context){
+			if(map.getZoom() >= 18){
+				showImgContext = context;
+				showComplexImgs(0);
+			}
+		});
+		
+		jumpBeijing();
+	});
+	function showCity() {
+		map.getCity(function(data) {
+			if (data['province'] && typeof data['province'] === 'string') {
+				$('#city').html(data['city'] || data['province']);
+			}
+		});
+		if(map.getZoom() <= 12){
+			$('#travelDayLine').hide();
+			$('#loveLine').show();
+		} else {
+			$('#loveLine').hide();
+		}
+	}
+	function showZoomLevel() {
+		var zoom = map.getZoom();
+		$('#zoomLevel').html(zoom);
+	}
+	function clearSomething() {
+		map.remove(markerArray);
+		map.remove(lineArray);
+		markerArray.length = 0;
+		lineArray.length = 0;
+	}
+	function drawMarkerLine() {
+		hideMarkerLine();
+		if (markerArray.length > 1) {
+			var positions = [];
+			for ( var v in markerArray) {
+				positions.push([ markerArray[v].getPosition().getLng(),
+						markerArray[v].getPosition().getLat()]);
+			}
+			var line = new AMap.Polyline({
+				map : map,
+				path : positions,
+				strokeOpacity : 0.5,
+				lineJoin: 'round',
+				showDir : true,
+				strokeColor : '#3366FF',
+				isOutline : true
+			});
+			lineArray.push(line);
+		} else {
+			alert('标记数量不足');
+		}
+	}
+	function hideMarkerLine(){
+		map.remove(lineArray);
+		lineArray.length = 0;
+		infoWindow.close();
+		$('#travelDayLine').hide();
+	}
+	function drawTravelDayLine(){
+		hideMarkerLine();
+		var day = $('#travelDayLine').attr('value').split('日')[0];
+		var positions = [];
+		for ( var v in markerArray) {
+			var info = params[markerArray[v].G.paramsPosition];
+			if(info.time.indexOf(day) >= 0){
+				positions.push([ markerArray[v].getPosition().getLng(),
+						markerArray[v].getPosition().getLat()]);
+			}
+		}
+		if(positions.length > 1){
+			var line = new AMap.Polyline({
+				map : map,
+				path : positions,
+				strokeOpacity : 0.5,
+				lineJoin: 'round',
+				showDir : true,
+				strokeColor : '#3366FF',
+				isOutline : true
+			});
+			lineArray.push(line);
+		}
+	}
+	function jumpCountry(){
+		//初始化界面
+		clear();
+        map.setZoom(5);
+	}
+	function jumpBeijing(){
+		clear();
+		map.setZoomAndCenter(11, [116.397428, 39.90923]);
+	}
+	function clear(){
+		infoWindow.close();
+		$('#photoSay').hide();
+		$('#travelDayLine').hide();
+		$('#note').html('');
+	}
+	function showComplexImgs(index){
+		var markers = showImgContext.markers;
+		var lnglat = showImgContext.lnglat;
+		var info = params[markers[index].G.paramsPosition];
+		infoWindow.setContent(infoWindowContent(info, index, markers.length));
+		infoWindow.open(map, lnglat);
+	}
+	function infoWindowContent(info, index = 0, max = 1){
+		//图片
+		var content = '<img src="' + info.path + '" width="200"/>';
+		//上下页切换
+		if(max > 1){
+			var prev = index < 1 ? max - 1 : index - 1;
+			var next = index + 2 > max ? 0 : index + 1;
+			content = content + '<div><input type="button" value="上一张" onclick="showComplexImgs(' + prev + ')"/>  <input type="button" value="下一张" onclick="showComplexImgs(' + next + ')"/></div>';
+		}
+		//说明信息
+		content = content + '<div>' + info.time + '</div><div>' + info.weather + '</div><div>' + info.address + '</div>';
+		//页数说明
+		if(max > 1){
+			content = content + '<div>' + (index+1)  +'/' + max + '</div>';
+		}
+		//整体框架
+		content = '<div align="center">' + content + '</div>'
+		//其他操作
+		if(info.note){
+			$('#photoSay').show();
+			$('#note').html(info.note);
+		} else {
+			$('#note').html('');
+		}
+		$('#travelDayLine').attr('value', info.time.split(' ')[0] + '日爱情轨道');
+		$('#travelDayLine').show();
+		return content;
+	}
+</script>
+
+</head>
+<body>
+	<div id="container"></div>
+	<div id="tip">
+		当前城市：<span id="city">未知</span>，缩放级别：<span id="zoomLevel"></span><br />
+		<div id="photoSay">
+			<span id="note"></span>
+		</div>
+	</div>
+	<div class="button-group">
+		<!-- <input type="button" value="全国" class="button" onclick="jumpCountry()" /> -->
+		<input type="button" value="总览" class="button" onclick="jumpBeijing()" /> 
+		<input type="button" id="loveLine" value="爱情轨道" class="button" onclick="drawMarkerLine()" />
+		<input type="button" id="travelDayLine" value="" class="button" onclick="drawTravelDayLine()" />
+		<input type="button" value="隐藏轨道" class="button" onclick="hideMarkerLine()" /><br/>
+	</div>
+	<div id="showImgs"></div>
+	<div id="imgs"></div>
+</body>
+</html>

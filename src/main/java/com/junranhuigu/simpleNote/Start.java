@@ -36,7 +36,10 @@ import com.junranhuigu.simpleNote.vo.TimeLine;
 
 public class Start {
 	public static String packPath = "C:\\Users\\jiawei\\Desktop\\img";
-	public static String webUrl = "http://bxu2713750650.my3w.com";
+//	public static String webUrl = "http://bxu2713750650.my3w.com";
+//	public static String webSeparator = "/";
+	public static String webUrl = "C:\\Users\\jiawei\\Desktop\\img";
+	public static String webSeparator = "\\";
 	
 	public static void main(String[] args) {
 		List<String> notImgPath = new ArrayList<>();
@@ -90,19 +93,13 @@ public class Start {
 		File webPackage = new File(System.getProperty("user.dir") + File.separator + "web");
 		//生成地图信息
 		LoggerFactory.getLogger(Start.class).info("生成地图信息");
-		Map<String, String> mapNotes = new HashMap<>();
-		for(PhotoInfo info : infos){
-			if(info.getAddress() != null && !mapNotes.containsKey(info.getAddress().getMapLocations())){
-				try {
-					mapNotes.put(info.getAddress().getMapLocations(), SimpleNote.mapNote(info));
-				} catch (Exception e) {
-					LoggerFactory.getLogger(Start.class).error("读取图片" + info.getPath() + "数据出错", e);
-				}
-			}
-		}
 		StringBuilder mapParams = new StringBuilder("var params = [");
-		for(String note : mapNotes.values()){
-			mapParams.append(note).append(",");
+		for(PhotoInfo info : infos){
+			try {
+				mapParams.append(SimpleNote.mapNote(info)).append(",");
+			} catch (Exception e) {
+				LoggerFactory.getLogger(Start.class).error("读取图片" + info.getPath() + "数据出错", e);
+			}
 		}
 		mapParams.append("];");
 		List<String> records = new ArrayList<>();
@@ -171,7 +168,8 @@ public class Start {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		StringBuilder photoParams = new StringBuilder();
 		photoParams.append("var params = [");
-		for(PhotoInfo info : infos){
+		for(int i = 0; i < infos.size(); ++ i){
+			PhotoInfo info = infos.get(i);
 			try {
 				Map<String, String> img = new HashMap<>();
 				img.put("path", info.showPath());
@@ -261,6 +259,20 @@ public class Start {
 		} catch (Exception e) {
 			LoggerFactory.getLogger(Start.class).error("", e);
 		}
+		Collections.sort(infos, new Comparator<PhotoInfo>() {
+			@Override
+			public int compare(PhotoInfo info1, PhotoInfo info2) {
+				long t1 = info1.getTime().getTime();
+				long t2 = info2.getTime().getTime();
+				if(t1 < t2){
+					return -1;
+				} else if(t1 > t2){
+					return 1;
+				} else {
+					return 0;
+				}
+			}
+		});
 		return infos;
 	}
 	

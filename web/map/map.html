@@ -138,7 +138,7 @@
 	        $('#loadingTip').remove();
 	        //启动页面
 	        initPage(distCluster, pointSimplifierIns, $);
-	        jump();
+	        jumpBeijing();
 	    });
 	});
 	function showCity() {
@@ -156,7 +156,7 @@
         //var pointStyle = pointSimplifierIns.getRenderOptions().pointStyle;
         //根据当前zoom调整点的尺寸
         //pointStyle.width = pointStyle.height = 2 * Math.pow(1.2, map.getZoom() - 3);
-        if (zoom < 12) {
+        if (zoom < 13) {
         	for(mark of markerArray){
         		mark.hide();
         	}
@@ -205,6 +205,9 @@
 		//初始化界面
         map.setZoom(5);
 	}
+	function jumpBeijing(){
+		map.setZoomAndCenter(11, [116.397428, 39.90923]);
+	}
 </script>
 
 </head>
@@ -214,9 +217,9 @@
 		当前城市：<span id="city">未知</span>，缩放级别：<span id="zoomLevel"></span><br />
 	</div>
 	<div class="button-group">
-		<input type="button" value="全国" class="button" onclick="jump()" />
-		<input type="button" value="清除标记" class="button" onclick="clearSomething()" />
-		<input type="button" value="标记自适应显示" class="button" onclick="showMarker()" /> 
+		<!-- <input type="button" value="全国" class="button" onclick="jump()" /> -->
+		<input type="button" value="初始化" class="button" onclick="jumpBeijing()" /> 
+		<input type="button" value="自适应显示" class="button" onclick="showMarker()" /> 
 		<input type="button" value="给标记画条线" class="button" onclick="drawMarkerLine()" />
 	</div>
 </body>

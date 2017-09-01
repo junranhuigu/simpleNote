@@ -7,7 +7,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.alibaba.fastjson.JSON;
+import com.junranhuigu.simpleNote.util.DateUtil;
 import com.junranhuigu.simpleNote.util.StringUtil;
+import com.junranhuigu.simpleNote.util.WeatherUtil;
 
 public class SimpleNote {
 	public static String LINE_CHAR = "\n";//换行标识符
@@ -38,7 +40,11 @@ public class SimpleNote {
 	 * */
 	public static String mapNote(PhotoInfo info) throws Exception{
 		Map<String, String> params = new HashMap<>();
-		params.put("info", simpleNote(info));
+		params.put("weather", WeatherUtil.simpleWeather(info.getWeather()));
+		params.put("time", DateUtil.parseTime(info.getTime()));
+		params.put("address", info.getAddress().simpleDetail());
+		params.put("addressDetail", info.getAddress().getDetail());
+		params.put("note", info.getNote());
 		params.put("path", info.showPath().replace(File.separator, "/"));
 		params.put("position", info.getAddress().getMapLocations());
 		return JSON.toJSONString(params);
