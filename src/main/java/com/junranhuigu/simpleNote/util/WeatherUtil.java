@@ -165,6 +165,9 @@ public class WeatherUtil {
 	 * 天气简单信息
 	 * */
 	public static String simpleWeather(String weather){
+		if(StringUtil.isEmpty(weather)){
+			return "";
+		}
 		int index = weather.lastIndexOf("℃");
 		StringBuilder info = new StringBuilder(weather.substring(0, index + 1).replace("/", "-").replace(" ", ""));//精简信息
 		//在天气和气温间加空格

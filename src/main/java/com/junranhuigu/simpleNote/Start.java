@@ -28,30 +28,34 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.GpsDirectory;
 import com.junranhuigu.simpleJson.JsonUtil;
 import com.junranhuigu.simpleNote.structure.Separator;
+import com.junranhuigu.simpleNote.util.DateUtil;
 import com.junranhuigu.simpleNote.util.FileUtil;
 import com.junranhuigu.simpleNote.vo.PhotoAnalysor;
 import com.junranhuigu.simpleNote.vo.PhotoInfo;
 import com.junranhuigu.simpleNote.vo.SimpleNote;
-import com.junranhuigu.simpleNote.vo.TimeLine;
+import com.junranhuigu.simpleNote.vo.TimeLineContent;
 
 public class Start {
 	public static String packPath = "C:\\Users\\jiawei\\Desktop\\img";
-//	public static String webUrl = "http://bxu2713750650.my3w.com";
-//	public static String webSeparator = "/";
-	public static String webUrl = "C:\\Users\\jiawei\\Desktop\\img";
-	public static String webSeparator = "\\";
+	public static String webUrl = "http://www.junran.top";
+	public static String webSeparator = "/";
+//	public static String webUrl = "C:\\Users\\jiawei\\Desktop\\img";
+//	public static String webSeparator = "\\";
 	
 	public static void main(String[] args) {
 		List<String> notImgPath = new ArrayList<>();
 		notImgPath.add(packPath + File.separator + "info");
 		notImgPath.add(packPath + File.separator + "web");
+		notImgPath.add(packPath + File.separator + "img");
 		
 		File pack = new File(packPath);
 		LoggerFactory.getLogger(Start.class).info("开始抓取图片");
 		Set<String> imgPaths = new HashSet<>();
 		findAllFiles(pack, imgPaths);//
 		imgPaths.removeAll(readAnalysisedPhotoData(pack, "root.path"));
-		List<String> imgs = new ArrayList<>();
+		
+		List<String> imgs = new ArrayList<>();//一般照片
+		List<String> mapImgs = new ArrayList<>();//有GPS信息的照片
 		pathFor : for(String path : imgPaths){
 			File file = new File(path);
 			for(String notImg : notImgPath){
@@ -64,19 +68,25 @@ public class Start {
 					Metadata data = ImageMetadataReader.readMetadata(file);
 					GpsDirectory d2 = data.getFirstDirectoryOfType(GpsDirectory.class);
 					if(d2 != null && d2.getDescription(GpsDirectory.TAG_LONGITUDE) != null){//只记录有GPS信息的图片
+						mapImgs.add(path);
+					} else {
 						imgs.add(path);
 					}
 				}
 			} catch (Exception e) {}
 		}
-		LoggerFactory.getLogger(Start.class).info("抓取图片共计：" + imgs.size());
-		if(imgs.size() > 0){
+		LoggerFactory.getLogger(Start.class).info("抓取图片共计：" + (imgs.size() + mapImgs.size()));
+		if(!mapImgs.isEmpty() || !imgs.isEmpty()){
 			LoggerFactory.getLogger(Start.class).info("开始分析图片数据");
 			try {
-				List<PhotoInfo> infos = PhotoAnalysor.analysis(imgs);
+				List<PhotoInfo> infos = PhotoAnalysor.analysis(mapImgs);
+				List<PhotoInfo> simpleInfos = PhotoAnalysor.simpleAnalysis(imgs);
 				LoggerFactory.getLogger(Start.class).info("图片数据分析完毕，开始保存数据");
 				List<String> contents = new ArrayList<>();
 				for(PhotoInfo info : infos){
+					contents.add(JSON.toJSONString(info) + "\n");
+				}
+				for(PhotoInfo info : simpleInfos){
 					contents.add(JSON.toJSONString(info) + "\n");
 				}
 				FileUtil.save(contents, photoInfoPath(pack), Charset.forName(TeamProperty.getInstance().get("defaultFileCharSet")));
@@ -95,10 +105,12 @@ public class Start {
 		LoggerFactory.getLogger(Start.class).info("生成地图信息");
 		StringBuilder mapParams = new StringBuilder("var params = [");
 		for(PhotoInfo info : infos){
-			try {
-				mapParams.append(SimpleNote.mapNote(info)).append(",");
-			} catch (Exception e) {
-				LoggerFactory.getLogger(Start.class).error("读取图片" + info.getPath() + "数据出错", e);
+			if(info.getAddress() != null){
+				try {
+					mapParams.append(SimpleNote.mapNote(info)).append(",");
+				} catch (Exception e) {
+					LoggerFactory.getLogger(Start.class).error("读取图片" + info.getPath() + "数据出错", e);
+				}
 			}
 		}
 		mapParams.append("];");
@@ -115,79 +127,46 @@ public class Start {
 		Separator<String, PhotoInfo> linePhotoSeparator = new Separator<String, PhotoInfo>() {
 			@Override
 			public String separate(PhotoInfo v) {
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 				return sdf.format(v.getTime());
 			}
 		};
 		linePhotoSeparator.addAll(infos);
 		Iterator<Entry<String, List<PhotoInfo>>> ite = linePhotoSeparator.getResult().entrySet().iterator();
-		Separator<String, TimeLine> lineSeparator = new Separator<String, TimeLine>() {
-			@Override
-			public String separate(TimeLine v) {
-				return v.getYear();
-			}
-		};
+		Map<String, List<TimeLineContent>> lineParams = new HashMap<>();
 		while(ite.hasNext()){
 			Entry<String, List<PhotoInfo>> entry = ite.next();
-			lineSeparator.add(new TimeLine(entry.getValue()));
+			ArrayList<TimeLineContent> list = new ArrayList<TimeLineContent>();
+			lineParams.put(entry.getKey(), list);
+			for(PhotoInfo info : entry.getValue()){
+				TimeLineContent ctx = new TimeLineContent(info, null);
+				list.add(ctx);
+			}
 		}
-		HashMap<String, List<TimeLine>> lineParams = lineSeparator.getResult();
-		Comparator<TimeLine> lineComparator = new Comparator<TimeLine>() {
+		Comparator<TimeLineContent> lineComparator = new Comparator<TimeLineContent>() {
 			@Override
-			public int compare(TimeLine o1, TimeLine o2) {
-				try {
-					SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日");
-					long d1 = sdf.parse(o1.getYear() + o1.getDate()).getTime();
-					long d2 = sdf.parse(o2.getYear() + o2.getDate()).getTime();
-					if(d1 > d2){
-						return -1;
-					} else if(d1 < d2){
-						return 1;
-					} else {
-						return 0;
-					}
-				} catch (Exception e) {
-					LoggerFactory.getLogger(Start.class).error("图片时间线信息出错", e);
+			public int compare(TimeLineContent o1, TimeLineContent o2) {
+				long d1 = DateUtil.parseTime(o1.getDate()).getTime();
+				long d2 = DateUtil.parseTime(o2.getDate()).getTime();
+				if(d1 > d2){
+					return -1;
+				} else if(d1 < d2){
+					return 1;
+				} else {
 					return 0;
 				}
 			}
 		};
-		for(List<TimeLine> linelist : lineParams.values()){
-			Collections.sort(linelist, lineComparator);
+		for(List<TimeLineContent> list : lineParams.values()){
+			Collections.sort(list, lineComparator);
 		}
 		try {
-			File lineParamFile = new File(webPackage.getAbsolutePath() + File.separator + "time" + File.separator + "params.js");
+			File lineParamFile = new File(webPackage.getAbsolutePath() + File.separator + "time" + File.separator + "param.js");
 			records.clear();
 			records.add("var params = " + JSON.toJSONString(lineParams) + ";");
 			FileUtil.cover(records, lineParamFile.getAbsolutePath(), Charset.forName("UTF-8"));
 		} catch (Exception e) {
 			LoggerFactory.getLogger(Start.class).error("写入时间线数据出错", e);
-		}
-		//生成详细照片信息
-		LoggerFactory.getLogger(Start.class).info("开始生成预览图片信息");
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		StringBuilder photoParams = new StringBuilder();
-		photoParams.append("var params = [");
-		for(int i = 0; i < infos.size(); ++ i){
-			PhotoInfo info = infos.get(i);
-			try {
-				Map<String, String> img = new HashMap<>();
-				img.put("path", info.showPath());
-				img.put("note", sdf.format(info.getTime()) + SimpleNote.LINE_CHAR + info.getAddress().simpleDetail() + SimpleNote.LINE_CHAR + new File(info.getPath()).getName());
-				photoParams.append(JSON.toJSONString(img)).append(",");
-			} catch (Exception e) {
-				LoggerFactory.getLogger(Start.class).error("读取图片" + info.getPath() + "数据出错", e);
-			}
-		}
-		photoParams.delete(photoParams.length() - 1, photoParams.length());
-		photoParams.append("];");
-		try {
-			File photoParamFile = new File(webPackage.getAbsolutePath() + File.separator + "imgDetail" + File.separator + "js" + File.separator + "params.js");
-			records.clear();
-			records.add(photoParams.toString());
-			FileUtil.cover(records, photoParamFile.getAbsolutePath(), Charset.forName("UTF-8"));
-		} catch (Exception e) {
-			LoggerFactory.getLogger(Start.class).error("写入照片预览数据出错", e);
 		}
 		//转移生成的文件
 		LoggerFactory.getLogger(Start.class).info("开始转移网页展示文件");

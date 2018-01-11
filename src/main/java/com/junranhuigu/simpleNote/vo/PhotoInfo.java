@@ -112,15 +112,15 @@ public class PhotoInfo {
 			}
 			//GPS定位信息
 			GpsDirectory d2 = data.getFirstDirectoryOfType(GpsDirectory.class);
-			
-			if(d2 != null){
+			boolean d2Empty = d2 == null || d2.getDescription(GpsDirectory.TAG_LONGITUDE) == null;
+			if(!d2Empty){
 				this.position = new Position(d2.getDescription(GpsDirectory.TAG_LONGITUDE), d2.getDescription(GpsDirectory.TAG_LATITUDE));
 				this.address = MapUtil.mapPosition(this.position);
 			}
 			
 			//日期时间
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy:MM:dd");
-			Date gpsDate = d2 != null ? sdf.parse(d2.getString(GpsDirectory.TAG_DATE_STAMP)) : null;
+			Date gpsDate = d2Empty ? null : sdf.parse(d2.getString(GpsDirectory.TAG_DATE_STAMP));
 			this.time = filterDate(dates, gpsDate);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -170,6 +170,10 @@ public class PhotoInfo {
 		} else {
 			return null;
 		}
+	}
+	
+	public String fileName(){
+		return new File(this.path).getName();
 	}
 	
 	public String getPath() {

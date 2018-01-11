@@ -12,25 +12,24 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.junranhuigu.simpleNote.structure.Separator;
+import com.junranhuigu.simpleNote.util.NoteUtil;
 import com.junranhuigu.simpleNote.util.WeatherUtil;
 
 public class PhotoAnalysor {
 	
+	/**
+	 * 包含地图信息的查询
+	 * */
 	public static List<PhotoInfo> analysis(List<String> paths) throws Exception{
-		if(paths == null || paths.isEmpty()){
-			return Collections.emptyList();
-		}
-		List<PhotoInfo> infos = new ArrayList<>();
+		List<PhotoInfo> infos = simpleAnalysis(paths);
 		Separator<String, PhotoInfo> separatorByAddress = new Separator<String, PhotoInfo>() {
 			@Override
 			public String separate(PhotoInfo info) {
 				return info.positionName();
 			}
 		};
-		for(String path : paths){
-			PhotoInfo info = new PhotoInfo(path);
+		for(PhotoInfo info : infos){
 			separatorByAddress.add(info);
-			infos.add(info);
 		}
 		//准备地址与日期信息
 		Iterator<Entry<String, List<PhotoInfo>>> ite = separatorByAddress.getResult().entrySet().iterator();
@@ -56,6 +55,31 @@ public class PhotoAnalysor {
 				if(entry.getKey().equals(info.positionName())){//对应地区
 					String date = sdf.format(info.getTime());
 					info.setWeather(weathers.get(date).replaceAll("[0-9]+年[0-9]+月[0-9]+日", ""));
+				}
+			}
+		}
+		return infos;
+	}
+	
+	/**
+	 * 一般信息提取
+	 * */
+	public static List<PhotoInfo> simpleAnalysis(List<String> paths) throws Exception{
+		if(paths == null || paths.isEmpty()){
+			return Collections.emptyList();
+		}
+		List<PhotoInfo> infos = new ArrayList<>();
+		for(String path : paths){
+			PhotoInfo info = new PhotoInfo(path);
+			infos.add(info);
+		}
+		//准备备注信息
+		List<Note> notelist = NoteUtil.allNotes();
+		for(PhotoInfo info : infos){
+			for(Note n : notelist){
+				if(n.getPhotoName().equals(info.fileName())){
+					info.setNote(n.getNote());
+					break;
 				}
 			}
 		}

@@ -10,7 +10,7 @@
 	href="http://cache.amap.com/lbs/static/main1119.css" />
 <style>
 </style>
-<script type="text/javascript" src="../jquery.min.js"></script>
+<script type="text/javascript" src="../js/jquery.min.js"></script>
 <script type="text/javascript"
 	src="http://webapi.amap.com/maps?v=1.3&key=6df5da9fc68f50eee4550e01fae79d04&&plugin=AMap.Scale,AMap.ToolBar,AMap.AdvancedInfoWindow,AMap.Transfer,AMap.MouseTool,AMapUI,AMap.MarkerClusterer"></script>
 <script type="text/javascript"
@@ -32,9 +32,9 @@
 	var markerRight;//右键选中的marker缓存
 	$(document).ready(function() {
 		map = new AMap.Map('container', {
-			resizeEnable : true,
+			resizeEnable : true
 			//zoom: 4,
-			mapStyle: 'amap://styles/macaron'
+			//mapStyle: 'amap://styles/macaron'
 		});
 		var scale = new AMap.Scale({
 			visible : false

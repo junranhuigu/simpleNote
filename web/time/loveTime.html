@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>爱情时间线</title>
+<link rel="stylesheet" href="../js/layui/css/layui.css">
+<script type="text/javascript" src="../js/jquery.min.js" ></script>
+<script type="text/javascript" src="../js/layui/layui.all.js" ></script>
+<script type="text/javascript" src="param.js" ></script>
+<script type="text/javascript">
+function genItem(date, imgs){
+	var result = '<li class="layui-timeline-item">' 
+		+ '<i class="layui-icon layui-timeline-axis">&#xe63f;</i>'
+		+ '<div class="layui-timeline-content layui-text">'
+		+ '<h3 class="layui-timeline-title">' + date + '</h3>'
+		+ '<p>' + genImgs(imgs) + '</p>'
+		+ '</div></li>';
+	return result;
+}
+function genImgs(imgs){
+	var result = '';
+	var cols = 0;
+	for(i in imgs){
+		var img = imgs[i];
+		result += '<span style="margin:2px;">' +
+			'<img src="' + img.imgPaths + '" alt="' + (img.date + " " +  img.locationDetail + " " + img.weather) + '"/></span>';
+		++ cols;
+		var device = layui.device();
+		var del = device.android || device.ios ? 2 : 7;
+		if(cols % del == 0){
+			cols = 0;
+			result += '<br/><br/>';
+		}
+	}
+	return result;
+}
+
+$(document).ready(function(){
+	var dateArray = new Array();
+	for(p in params){
+		dateArray.push(p);
+	}
+	dateArray.sort().reverse();
+	for(date in dateArray){
+		var day = dateArray[date];
+		$('#line').append(genItem(day, params[day]));
+	}
+	$('img').load(function(){
+		var img = new Image();
+		img.src = $(this).attr('src');
+		var w = img.width;
+		var h = img.height;
+		if(w > 200){
+			h = h * 200 / w;
+			w = 200;
+		}
+		if(h > 200){
+			w = w * 200 / h;
+			h = 200;
+		}
+		$(this).attr('width', w);
+		$(this).attr('height', h);
+		$(this).attr('alt', $(this).attr('alt'));
+	});
+});
+</script>
+</head>
+<body>
+<ul id="line" class="layui-timeline">
+  
+</ul>
+</body>
+</html>
